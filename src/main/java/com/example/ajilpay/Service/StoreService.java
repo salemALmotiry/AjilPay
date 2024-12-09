@@ -728,7 +728,11 @@ public class StoreService {
     public List<Map<String, Object>> detectAbnormalSpending(Integer storeId) {
         LocalDate startDate = LocalDate.now().withDayOfMonth(1);
         LocalDate endDate = LocalDate.now();
+        System.out.println(startDate);
+        System.out.println(endDate);
         double thresholdPercentage= 1;
+
+
 
         // Fetch all invoices
 

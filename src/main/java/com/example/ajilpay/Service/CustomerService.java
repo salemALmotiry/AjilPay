@@ -23,10 +23,61 @@ public class CustomerService {
     private final MonthlyPaymentRepository monthlyPaymentRepository;
     private final InvoiceItemRepository invoiceItemRepository;
     private final StoreRepository storeRepository;
+    private final StoreService storeService;
 
 
+    public List<Customer> getAllCustomers() {
+        return customerRepository.findAll();
+    }
 
 
+    public void checkoutCustomer(Integer customerId) {
+        // 1. Retrieve customer
+        Customer customer = customerRepository.findCustomerByCustomerId(customerId);
+        if (customer == null) {
+            throw new ApiException("Customer not found");
+        }
+        if (customer.getStoreId() == null) {
+            throw new ApiException("Customer is not associated with any store.");
+        }
+        Store store = storeRepository.findStoreByStoreId(customer.getStoreId());
+
+        if (!store.getStoreId().equals(customer.getStoreId())) {
+            throw new ApiException("Store is not associated with any store.");
+        }
+
+        Integer storeId = customer.getStoreId();
+
+        storeService.createMonthlyPayment(storeId, customerId);
+        List<MonthlyPayment> payments = monthlyPaymentRepository.findMonthlyPaymentByStoreIdAndCustomerId(storeId, customerId);
+
+        double totalOutstandingBalance = 0.0;
+
+        for (MonthlyPayment payment : payments) {
+            if (!"PAID".equals(payment.getPaymentStatus())) {
+                totalOutstandingBalance += payment.getTotalDue() - payment.getTotalPaid();
+            }
+        }
+        if (totalOutstandingBalance > 0) {
+            throw new ApiException("Customer has outstanding payments. Total due: " + totalOutstandingBalance);
+        }
+
+
+        boolean hasUnpaidPayments = false;
+        for (MonthlyPayment payment : payments) {
+            if (!"PAID".equals(payment.getPaymentStatus())) {
+                hasUnpaidPayments = true;
+                break;
+            }
+        }
+        if (hasUnpaidPayments) {
+            throw new ApiException("Customer still has unpaid or partial payments.");
+        }
+
+
+        customer.setStoreId(null);
+        customerRepository.save(customer);
+    }
     public void addCustomer(Customer customer) {
         Store store = storeRepository.findStoreByStoreId(customer.getStoreId());
         if (store == null) {
@@ -62,7 +113,7 @@ public class CustomerService {
             if (monthlyPayment != null) {
                 paymentStatus = monthlyPayment.getPaymentStatus();
                 totalPaid = monthlyPayment.getTotalPaid();
-                outstandingAmount = totalAmount - totalPaid; // Calculate outstanding
+                outstandingAmount = monthlyPayment.getTotalDue() - totalPaid; // Calculate outstanding
             }
 
 

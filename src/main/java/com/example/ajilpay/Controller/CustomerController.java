@@ -23,6 +23,11 @@ public class CustomerController {
     private final CustomerService customerService;
 
 
+    @GetMapping("/get-all")
+    public ResponseEntity getAllCustomers() {
+        List<Customer> customers = customerService.getAllCustomers();
+        return ResponseEntity.status(200).body(customers);
+    }
 
     @PostMapping("/add")
     public ResponseEntity addCustomer(@RequestBody @Valid Customer customer, Errors errors) {
@@ -33,6 +38,11 @@ public class CustomerController {
         return ResponseEntity.status(201).body(new ApiResponse("Customer added successfully"));
     }
 
+    @PutMapping("/{customerId}/checkout")
+    public ResponseEntity<String> checkoutFromStore(@PathVariable Integer customerId) {
+        customerService.checkoutCustomer(customerId);
+        return ResponseEntity.ok("Customer has successfully checked out from the store.");
+    }
 
 
     @GetMapping("/invoices/{customer_id}")

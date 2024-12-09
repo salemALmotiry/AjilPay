@@ -39,7 +39,12 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Integer> {
 
     List<Invoice>findInvoicesByStoreIdAndCreatedAtBetween(Integer storeId,LocalDateTime startOfMonth,LocalDateTime endOfMonth);
 
-    List<Invoice>findInvoicesByCustomerIdAfterAndCreatedAtBetween(Integer storeId,LocalDateTime startOfMonth,LocalDateTime endOfMonth);
+    @Query("SELECT i FROM Invoice i WHERE i.customerId = :customerId AND i.createdAt BETWEEN :startDate AND :endDate")
+    List<Invoice> findInvoicesByCustomerIdAfterAndCreatedAtBetween(
+            @Param("customerId") Integer customerId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
 
 
 }
