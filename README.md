@@ -1,10 +1,9 @@
-total endpoints 17
+total endpoints 16
 
-store owner 11:
+store owner 10:
 <br>
 <br>
-getMonthlyRevenueForStore
-<br>
+
 createMonthlyPayment
 <br>
 processCustomerPayment
