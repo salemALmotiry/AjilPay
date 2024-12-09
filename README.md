@@ -1,6 +1,7 @@
-
+total endpoints 17
 
 store owner 11:
+<br>
 <br>
 getMonthlyRevenueForStore
 <br>
@@ -26,6 +27,7 @@ detectAbnormalSpending
 <br>
 <br>
 Customer 6 :
+<br>
 <br>
 getInvoiceSummaryForCustomer
 <br>
