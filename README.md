@@ -1,0 +1,26 @@
+
+
+store owner 11:
+
+getMonthlyRevenueForStore
+createMonthlyPayment
+processCustomerPayment
+analyzePaymentBehavior
+
+getCustomerOverView
+getStoreInsights
+getTopSellingItems
+evaluateCustomerTrustworthiness
+
+forecastStoreSales
+detectSuspiciousActivity
+detectAbnormalSpending
+
+Customer 6 :
+
+getInvoiceSummaryForCustomer
+addItemToInvoice
+getUnusualItems
+forecastCustomerInvoices
+getPriceChangesForCustomer
+Checkout
