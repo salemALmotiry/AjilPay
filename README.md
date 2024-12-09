@@ -1,12 +1,15 @@
 
 
 store owner 11:
-
+<br>
 getMonthlyRevenueForStore
+<br>
 createMonthlyPayment
+<br>
 processCustomerPayment
+<br>
 analyzePaymentBehavior
-
+<br>
 getCustomerOverView
 getStoreInsights
 getTopSellingItems
