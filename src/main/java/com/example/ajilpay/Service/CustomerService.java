@@ -117,6 +117,7 @@ public class CustomerService {
     public List getUnusualItems(Integer customerId) {
 
         List<Invoice> invoices = invoiceRepository.findInvoiceByCustomerId(customerId);
+
         List<InvoiceItem> invoiceItems = new ArrayList<>();
         for (Invoice invoice : invoices) {
             invoiceItems.addAll(invoiceItemRepository.findInvoiceItemByInvoiceId(invoice.getInvoiceId()));
@@ -147,7 +148,7 @@ public class CustomerService {
 
     private LocalDate getLastPurchasedDate(String itemName, Integer customerId) {
         // Get the last purchase date
-        InvoiceItem lastPurchasedItem = invoiceItemRepository.findInvoiceItemFirstByItemNameAndInvoiceIdOrderByCreatedAtDesc(itemName, customerId);
+        InvoiceItem lastPurchasedItem = invoiceItemRepository.findFirstByItemNameAndInvoiceIdOrderByCreatedAtDesc(itemName, customerId);
         return lastPurchasedItem != null ? lastPurchasedItem.getCreatedAt().toLocalDate() : LocalDate.now();
     }
 

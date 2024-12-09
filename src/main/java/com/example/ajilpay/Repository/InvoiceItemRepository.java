@@ -17,7 +17,9 @@ public interface InvoiceItemRepository extends JpaRepository<InvoiceItem, Intege
     List<InvoiceItem> findInvoiceItemByInvoiceId(Integer invoiceId);
 
 
-    InvoiceItem findInvoiceItemFirstByItemNameAndInvoiceIdOrderByCreatedAtDesc(String itemName, Integer invoiceId);
+    @Query("SELECT i FROM InvoiceItem i WHERE i.itemName = ?1 AND i.invoiceId = ?2 ORDER BY i.createdAt DESC LIMIT 1")
+    InvoiceItem findFirstByItemNameAndInvoiceIdOrderByCreatedAtDesc(String itemName, Integer invoiceId);
+
     @Query("SELECT ii FROM InvoiceItem ii WHERE ii.invoiceId =?1")
     List<InvoiceItem> findItemsByInvoiceId(Integer invoiceId);
 
