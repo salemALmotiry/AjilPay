@@ -106,3 +106,70 @@ This update includes three core functionalities to manage store-customer interac
 | `/customer/{customerId}/add-invoice-items/{invoiceId}` | `POST` | Customer adds items to their invoice           |
 
 --- 
+
+### **Total Endpoints: 18**
+
+---
+
+#### **Store Owner (11 Endpoints)**
+
+1. **`createMonthlyPayment`**  
+   Generate monthly payment details for customers.
+
+2. **`processCustomerPayment`**  
+   Apply payments made by customers and update balances.
+
+3. **`analyzePaymentBehavior`**  
+   Analyze customer payment trends and behaviors.
+
+4. **`getCustomerOverView`**  
+   Get a detailed overview of a specific customer's activity in the store.
+
+5. **`getStoreInsights`**  
+   Provide overall store performance insights, including revenue and trends.
+
+6. **`getTopSellingItems`**  
+   Identify top-selling items based on historical sales data.
+
+7. **`evaluateCustomerTrustworthiness`**  
+   Assess a customer's trustworthiness based on payment history and behavior.
+
+8. **`forecastStoreSales`**  
+   Predict future sales for the store based on past data and trends.
+
+9. **`detectSuspiciousActivity`**  
+   Identify suspicious activity such as unusually high returns or refunds.
+
+10. **`detectAbnormalSpending`**  
+    Spot irregular spending patterns in customer purchases.
+
+11. **`assignCustomerToStore`**  
+    Link a customer to the store if not already associated.
+12.  **`checkoutFromStore`**  
+  A store owner can perform a customer checkout to remove the customer from their store.
+
+---
+
+#### **Customer (7 Endpoints)**
+
+1. **`getInvoiceSummaryForCustomer`**  
+   View a summary of all invoices associated with the customer.
+
+2. **`addItemToInvoice`**  
+   Allow the customer to add items to their invoice (within store-defined limits).
+
+3. **`getUnusualItems`**  
+   Identify unusual items in the customer's purchase history.
+
+4. **`forecastCustomerInvoices`**  
+   Predict future invoice amounts based on customer purchase trends.
+
+5. **`getPriceChangesForCustomer`**  
+   Track price fluctuations for items frequently purchased by the customer.
+
+6. **`checkoutFromStore`**  
+   Enable the customer to finalize payments and exit the store association.
+
+7. **`analyzeCustomerPurchasePatterns`**  
+   Provide insights into the customer’s purchase habits, such as recurring purchases, seasonal items, and preferred categories.
+
