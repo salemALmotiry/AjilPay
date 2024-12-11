@@ -107,11 +107,11 @@ This update includes three core functionalities to manage store-customer interac
 
 --- 
 
-### **Total Endpoints: 18**
+### **Total Endpoints: 19**
 
 ---
 
-#### **Store Owner (11 Endpoints)**
+#### **Store Owner (12 Endpoints)**
 
 1. **`createMonthlyPayment`**  
    Generate monthly payment details for customers.
