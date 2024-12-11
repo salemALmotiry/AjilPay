@@ -23,9 +23,6 @@ public interface InvoiceItemRepository extends JpaRepository<InvoiceItem, Intege
     @Query("SELECT ii FROM InvoiceItem ii WHERE ii.invoiceId =?1")
     List<InvoiceItem> findItemsByInvoiceId(Integer invoiceId);
 
-    @Query("SELECT ii FROM InvoiceItem ii WHERE ii.invoiceId =?1")
-    List<InvoiceItem> findInvoiceItemBy(Integer invoiceId);
-
 
     @Query("SELECT i FROM InvoiceItem i JOIN Invoice inv ON i.invoiceId = inv.invoiceId WHERE inv.storeId = :storeId")
     List<InvoiceItem> findInvoiceItemsByStoreId(Integer storeId);

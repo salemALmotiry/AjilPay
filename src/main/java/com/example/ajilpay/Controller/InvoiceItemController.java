@@ -21,27 +21,20 @@ public class InvoiceItemController {
     @GetMapping("/get-all")
     public ResponseEntity getAllInvoiceItems() {
         List<InvoiceItem> invoiceItems = invoiceItemService.getAllInvoiceItems();
-        return ResponseEntity.ok(invoiceItems);
+        return ResponseEntity.status(200).body(invoiceItems);
     }
 
     @PostMapping("/add")
-    public ResponseEntity addInvoiceItem(@RequestBody @Valid InvoiceItem invoiceItem, Errors errors) {
-        if (errors.hasErrors()) {
-            return ResponseEntity.badRequest().body(errors.getFieldError().getDefaultMessage());
-        }
+    public ResponseEntity addInvoiceItem(@RequestBody @Valid InvoiceItem invoiceItem) {
+
         invoiceItemService.addInvoiceItem(invoiceItem);
-        return ResponseEntity.status(201).body(new ApiResponse("Invoice Item added successfully"));
+        return ResponseEntity.status(200).body(new ApiResponse("Invoice Item added successfully"));
     }
 
-    @GetMapping("/get-by-invoice/{invoiceId}")
-    public ResponseEntity getInvoiceItemsByInvoiceId(@PathVariable Integer invoiceId) {
-        List<InvoiceItem> invoiceItems = invoiceItemService.getInvoiceItemsByInvoiceId(invoiceId);
-        return ResponseEntity.ok(invoiceItems);
-    }
 
     @DeleteMapping("/delete/{itemId}")
     public ResponseEntity deleteInvoiceItem(@PathVariable Integer itemId) {
         invoiceItemService.deleteInvoiceItem(itemId);
-        return ResponseEntity.ok(new ApiResponse("Invoice Item deleted successfully"));
+        return ResponseEntity.status(200).body (new ApiResponse("Invoice Item deleted successfully"));
     }
 }

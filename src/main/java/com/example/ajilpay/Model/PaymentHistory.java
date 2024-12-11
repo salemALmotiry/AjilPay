@@ -35,20 +35,4 @@ public class PaymentHistory {
     private LocalDateTime appliedAt = LocalDateTime.now();
 
 
-    @Transient // This field is not stored in the database; it's calculated dynamically.
-    private Long daysPassed;
-
-    @PostLoad
-    @PostPersist
-    public void calculateDaysPassed() {
-        MonthlyPayment monthlyPayment = fetchMonthlyPaymentById(monthlyPaymentId);
-        if (monthlyPayment != null) {
-            this.daysPassed = Duration.between(monthlyPayment.getCreatedAt(), appliedAt).toDays();
-        }
-    }
-
-    private MonthlyPayment fetchMonthlyPaymentById(Integer id) {
-
-        return null;
-    }
 }

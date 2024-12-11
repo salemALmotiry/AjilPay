@@ -16,19 +16,27 @@ public class StoreOwner {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer ownerId;
 
-    @NotBlank(message = "Username cannot be empty")
+    @NotEmpty(message = "Username cannot be empty")
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     @Column(columnDefinition = "VARCHAR(50) NOT NULL")
     private String username;
 
-    @NotBlank(message = "Email cannot be empty")
+    @NotEmpty(message = "Email cannot be empty")
     @Email(message = "Email must be valid")
     @Column(columnDefinition = "VARCHAR(100) UNIQUE NOT NULL")
     private String email;
 
-    @NotBlank(message = "Password hash cannot be empty")
+    @NotEmpty(message = "Password cannot be empty")
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*])[A-Za-z\\d!@#$%^&*]{8,20}$", message = "password RegEx rules: \n" +
+            "- Length: between 8 to 20 characters.\n" +
+            "- Must contain at least:\n" +
+            "   - One uppercase letter (A-Z)\n" +
+            "   - One lowercase letter (a-z)\n" +
+            "   - One number (0-9)\n" +
+            "   - One special character (e.g., `!@#$%^&*`)\n" +
+            "- No spaces allowed.")
     @Column(columnDefinition = "VARCHAR(255) NOT NULL")
-    private String passwordHash;
+    private String password;
 
     @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt = LocalDateTime.now();

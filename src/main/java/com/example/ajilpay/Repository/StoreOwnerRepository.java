@@ -12,5 +12,6 @@ public interface StoreOwnerRepository extends JpaRepository<StoreOwner, Integer>
 
     StoreOwner findStoreOwnerByOwnerId(Integer storeOwnerId);
 
+    void deleteStoreOwnerByOwnerId(Integer storeOwnerId);
 
 }

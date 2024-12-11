@@ -22,10 +22,21 @@ public class PaymentHistoryService {
     }
 
     public void addPaymentHistory(PaymentHistory paymentHistory) {
+        PaymentHistory paymentHistory1 = paymentHistoryRepository.findByMonthlyPaymentId(paymentHistory.getMonthlyPaymentId());
+        if (paymentHistory1 == null) {
+            throw new RuntimeException("This payment history mot exists");
+        }
+        if (paymentHistory1.getMonthlyPaymentId() == paymentHistory.getMonthlyPaymentId()){
+            throw new RuntimeException("This payment history mot exists");
+        }
         paymentHistoryRepository.save(paymentHistory);
     }
 
     public void deletePaymentHistory(Integer historyId) {
+        PaymentHistory paymentHistory = paymentHistoryRepository.findByMonthlyPaymentId(historyId);
+        if (paymentHistory == null) {
+            throw new RuntimeException("This payment history mot exists");
+        }
         paymentHistoryRepository.deleteById(historyId);
     }
 }

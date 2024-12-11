@@ -8,7 +8,6 @@ import com.example.ajilpay.Service.StoreService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -26,23 +25,17 @@ public class StoreController {
     @GetMapping("/get-all")
     public ResponseEntity getAllStores() {
         List<Store> stores = storeService.getAllStores();
-        return ResponseEntity.ok(stores);
+        return ResponseEntity.status(200).body(stores);
     }
 
     @PostMapping("/add")
-    public ResponseEntity addStore(@RequestBody @Valid Store store, Errors errors) {
-        if (errors.hasErrors()) {
-            return ResponseEntity.badRequest().body(errors.getFieldError().getDefaultMessage());
-        }
+    public ResponseEntity addStore(@RequestBody @Valid Store store) {
+
         storeService.addStore(store);
-        return ResponseEntity.status(201).body(new ApiResponse("Store added successfully"));
+        return ResponseEntity.status(200).body(new ApiResponse("Store added successfully"));
     }
 
-    @GetMapping("/store/{storeId}/monthly-revenue")
-    public ResponseEntity<BigDecimal> getMonthlyRevenue(@PathVariable Integer storeId) {
-        BigDecimal totalRevenue = storeService.getMonthlyRevenueForStore(storeId);
-        return ResponseEntity.status(200).body(totalRevenue);
-    }
+
 
     @PostMapping("/store/{storeId}/customer/{customerId}/create-monthly-payment")
     public ResponseEntity<ApiResponse> createMonthlyPayment(
@@ -55,10 +48,10 @@ public class StoreController {
 
 
     @PostMapping("/store/{storeId}/customer/{customerId}/amount/{amount}/process-payment")
-    public ResponseEntity<String> makePayment(@PathVariable Integer storeId, @PathVariable Integer customerId, @PathVariable double amount) {
+    public ResponseEntity makePayment(@PathVariable Integer storeId, @PathVariable Integer customerId, @PathVariable double amount) {
 
         String response = storeService.processCustomerPayment(storeId, customerId, amount);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(200).body(new ApiResponse( response));
 
     }
     @GetMapping("/store/{storeId}/customer/{customerId}/payment-summary")
@@ -89,13 +82,13 @@ public class StoreController {
     @GetMapping("/store/{storeId}/limit/{limit}/top-selling-items")
     public ResponseEntity getTopSellingItems(@PathVariable Integer storeId,@PathVariable int limit) {
         List<Map<String, Object>> topSellingItems = storeService.getTopSellingItems(storeId, limit);
-        return ResponseEntity.ok(topSellingItems);
+        return ResponseEntity.status(200).body(topSellingItems);
     }
 
     @PostMapping("/store/{storeId}/customer/{customerId}/evaluate-trustworthiness-manual")
     public ResponseEntity evaluateTrustworthinessManual(@PathVariable Integer storeId, @PathVariable Integer customerId) {
         Map<String, Object> evaluationResult = storeService.evaluateCustomerTrustworthiness(customerId, storeId);
-        return ResponseEntity.ok(evaluationResult);
+        return ResponseEntity.status(200).body(evaluationResult);
     }
 
     @GetMapping("/{storeId}/{monthsAhead}/sales-forecast")
@@ -105,7 +98,7 @@ public class StoreController {
 
     @GetMapping("/{storeId}/suspicious-activity")
     public ResponseEntity<Map<String, Object>> detectSuspiciousActivity(@PathVariable Integer storeId) {
-        return ResponseEntity.ok(storeService.detectSuspiciousActivity(storeId));
+        return ResponseEntity.status(200).body(storeService.detectSuspiciousActivity(storeId));
     }
 
     @GetMapping("/store/{storeId}/abnormal-spending")
@@ -114,9 +107,46 @@ public class StoreController {
 
 
         List<Map<String, Object>> abnormalInvoices = storeService.detectAbnormalSpending(storeId);
-        return ResponseEntity.ok(abnormalInvoices);
+        return ResponseEntity.status(200).body(abnormalInvoices);
+    }
+
+    @PostMapping("/{storeId}/customers/{customerId}/add-invoice")
+    public ResponseEntity addInvoice(
+            @PathVariable Integer storeId,
+            @PathVariable Integer customerId,
+            @RequestBody Map<String, Object> requestBody) {
+
+            String response= storeService.addInvoiceWithItems(storeId, customerId, requestBody);
+            return ResponseEntity.status(200).body(new ApiResponse( response));
+
+    }
+
+    @PostMapping("/add-item/{invoiceId}/{storeId}/{customerId}")
+    public ResponseEntity addItemToInvoice(
+            @PathVariable Integer invoiceId,
+            @PathVariable Integer storeId,
+            @PathVariable Integer customerId,
+            @RequestBody @Valid InvoiceItem invoiceItem) {
+
+        storeService.addItemToInvoice(invoiceId,storeId,customerId ,invoiceItem);
+        return ResponseEntity.status(200).body(new ApiResponse( "item added to invoice"));
     }
 
 
+    @PutMapping("/{storeId}/add-customer/{customerId}")
+    public ResponseEntity addCustomerToStore(
+            @PathVariable Integer storeId,
+            @PathVariable Integer customerId) {
+
+            storeService.assignCustomerToStore(customerId, storeId);
+            return ResponseEntity.status(200).body(new ApiResponse( "Customer added to the store successfully."));
+
+    }
+
+    @PutMapping("/{customerId}/checkout")
+    public ResponseEntity checkoutFromStore(@PathVariable Integer customerId) {
+        customerService.checkoutCustomer(customerId);
+        return ResponseEntity.status(200).body(new ApiResponse("Customer has successfully checked out from the store."));
+    }
 
 }

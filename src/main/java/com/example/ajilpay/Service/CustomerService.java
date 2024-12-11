@@ -32,7 +32,7 @@ public class CustomerService {
 
 
     public void checkoutCustomer(Integer customerId) {
-        // 1. Retrieve customer
+
         Customer customer = customerRepository.findCustomerByCustomerId(customerId);
         if (customer == null) {
             throw new ApiException("Customer not found");
@@ -94,7 +94,6 @@ public class CustomerService {
         if (customer == null) {
             throw new RuntimeException("Customer not found");
         }
-        // Fetch all invoices
         List<Invoice> invoices = invoiceRepository.findInvoiceByCustomerId(customerId);
 
         if (invoices == null) {
@@ -133,7 +132,7 @@ public class CustomerService {
 
     //_________________________ add item to invoice______________________________
     public void addItemToInvoice(Integer invoiceId, InvoiceItem invoiceItem) {
-        Invoice invoice = invoiceRepository.findByInvoiceId(invoiceId);
+        Invoice invoice = invoiceRepository.findInvoiceByInvoiceId(invoiceId);
 
         if (invoice == null) {
             throw new RuntimeException("Invoice not found");
@@ -157,7 +156,7 @@ public class CustomerService {
         }
         // Save the new invoice item
         invoiceItem.setInvoiceId(invoiceId);  // Link the item to the invoice
-        invoiceItem.setSubtotal(invoiceItem.getPricePerUnit() * invoiceItem.getQuantity());  // Calculate subtotal
+        invoiceItem.setSubtotal(invoiceItem.getPricePerUnit() * invoiceItem.getQuantity());
         invoiceItemRepository.save(invoiceItem);
 
 
@@ -198,7 +197,6 @@ public class CustomerService {
     }
 
     private LocalDate getLastPurchasedDate(String itemName, Integer customerId) {
-        // Get the last purchase date
         InvoiceItem lastPurchasedItem = invoiceItemRepository.findFirstByItemNameAndInvoiceIdOrderByCreatedAtDesc(itemName, customerId);
         return lastPurchasedItem != null ? lastPurchasedItem.getCreatedAt().toLocalDate() : LocalDate.now();
     }
@@ -233,7 +231,6 @@ public class CustomerService {
         Map<Month, Double> seasonality = getSeasonalityAdjustment(invoices);
 
         //Calculate standard deviation
-        //Calculate standard deviation
         //https://www.youtube.com/watch?v=J3SuIC0HLxI
         //https://www.programiz.com/java-programming/examples/standard-deviation
 
@@ -253,7 +250,6 @@ public class CustomerService {
             forecastedMonths.add(new ForecastedMonthDTO(forecastMonth, forecastedRevenue, (int) confidence));
         }
 
-        // Return invoices forecast
         return new InvoicesForecastDTO(customerId, forecastedMonths);
     }
 
@@ -283,14 +279,14 @@ public class CustomerService {
         Map<Month, Double> monthlyInvoices = new HashMap<>();
         Map<Month, Integer> monthlyCount = new HashMap<>();
 
-        // Aggregate monthly invoices
+
         for (Invoice invoice : invoices) {
             Month month = invoice.getCreatedAt().getMonth();
             monthlyInvoices.put(month, monthlyInvoices.getOrDefault(month, 0.0) + invoice.getTotalAmount());
             monthlyCount.put(month, monthlyCount.getOrDefault(month, 0) + 1);
         }
 
-        // Calculate seasonality as an adjustment factor (relative to the average monthly invoices)
+        // Calculate seasonality as an adjustment factor
         double averageMonthlyInvoices = monthlyInvoices.values().stream().mapToDouble(Double::doubleValue).average().orElse(1.0);
         Map<Month, Double> seasonalityFactors = new HashMap<>();
         for (Month month : monthlyInvoices.keySet()) {
@@ -323,7 +319,6 @@ public class CustomerService {
     //_________________________________________end generateinvoicesForecast__________________________________________________
 
     public List<InvoiceItemPriceChangeDTO> getPriceChangesForCustomer(Integer customerId) {
-        // Fetch all invoices by customer id
         List<Invoice> invoices = invoiceRepository.findInvoiceByCustomerId(customerId);
 
         if (invoices.isEmpty()) {

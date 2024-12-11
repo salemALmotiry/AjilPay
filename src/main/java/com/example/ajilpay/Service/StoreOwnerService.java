@@ -30,7 +30,7 @@ public class StoreOwnerService {
     }
 
     public void deleteStoreOwner(Integer ownerId) {
-        storeOwnerRepository.deleteById(ownerId);
+        storeOwnerRepository.deleteStoreOwnerByOwnerId(ownerId);
     }
 
     public StoreOwner getStoreOwnerById(Integer ownerId) {

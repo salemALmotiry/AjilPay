@@ -30,18 +30,16 @@ public class CustomerController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity addCustomer(@RequestBody @Valid Customer customer, Errors errors) {
-        if (errors.hasErrors()) {
-            return ResponseEntity.badRequest().body(errors.getFieldError().getDefaultMessage());
-        }
+    public ResponseEntity addCustomer(@RequestBody @Valid Customer customer) {
+
         customerService.addCustomer(customer);
-        return ResponseEntity.status(201).body(new ApiResponse("Customer added successfully"));
+        return ResponseEntity.status(200).body(new ApiResponse("Customer added successfully"));
     }
 
     @PutMapping("/{customerId}/checkout")
-    public ResponseEntity<String> checkoutFromStore(@PathVariable Integer customerId) {
+    public ResponseEntity  checkoutFromStore(@PathVariable Integer customerId) {
         customerService.checkoutCustomer(customerId);
-        return ResponseEntity.ok("Customer has successfully checked out from the store.");
+        return ResponseEntity.status(200).body(new ApiResponse("Customer has successfully checked out from the store."));
     }
 
 
@@ -49,19 +47,16 @@ public class CustomerController {
     public ResponseEntity getInvoiceSummary(@PathVariable Integer customer_id) {
         List<InvoiceSummaryDTO> invoiceSummaries = customerService.getInvoiceSummaryForCustomer(customer_id);
 
-        if (invoiceSummaries.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(invoiceSummaries);
+        return ResponseEntity.status(200).body(invoiceSummaries);
     }
 
     @PostMapping("/add-item/{invoiceId}")
-    public ResponseEntity<String> addItemToInvoice(
+    public ResponseEntity  addItemToInvoice(
             @PathVariable Integer invoiceId,
-            @RequestBody InvoiceItem invoiceItem) {
+            @RequestBody @Valid InvoiceItem invoiceItem) {
 
         customerService.addItemToInvoice(invoiceId, invoiceItem);
-        return ResponseEntity.status(200).body("item added to invoice");
+        return ResponseEntity.status(200).body(new ApiResponse("item added to invoice"));
     }
 
     @RequestMapping("/unusual-items/{customerId}")
@@ -73,7 +68,7 @@ public class CustomerController {
     @GetMapping("/customer/{customerId}/monthsAhead/{monthsAhead}/invoices-forecast")
     public ResponseEntity generateInvoicesForecast(@PathVariable Integer customerId, @PathVariable Integer monthsAhead) {
         InvoicesForecastDTO forecast = customerService.forecastCustomerInvoices(customerId, monthsAhead);
-        return ResponseEntity.ok(forecast);
+        return ResponseEntity.status(200).body(forecast);
     }
 
     @GetMapping("/customer/{customerId}/price-changes")

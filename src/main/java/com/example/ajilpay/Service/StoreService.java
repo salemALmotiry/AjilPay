@@ -31,25 +31,17 @@ public class StoreService {
 
 
     public void addStore(Store store) {
+        Store store1 = storeRepository.findStoreByStoreId(store.getStoreId());
+        if (store1 != null) {
+            throw new ApiException("Store already exists");
+        }
+
         storeRepository.save(store);
     }
 
     //_______________________________________________________
 
-    public BigDecimal getMonthlyRevenueForStore(Integer storeId) {
-        List<MonthlyPayment> payments = monthlyPaymentRepository.findMonthlyPaymentByStoreId(storeId);
 
-        if (payments.isEmpty()) {
-            throw new RuntimeException("No payments found for store with id: " + storeId);
-        }
-        BigDecimal totalRevenue = BigDecimal.ZERO;
-
-        for (MonthlyPayment payment : payments) {
-            totalRevenue = totalRevenue.add(BigDecimal.valueOf(payment.getTotalPaid()));
-        }
-
-        return totalRevenue;
-    }
 
 
     public void createMonthlyPayment(Integer storeId, Integer customerId) {
@@ -76,10 +68,7 @@ public class StoreService {
 
         // Initialize with the first invoice date if no previous payments exist
         if (lastGenerationDate == null) {
-
-
             LocalDate firstInvoiceDate = invoiceRepository.findFirstInvoiceByCustomerId(customerId).toLocalDate().withDayOfMonth(1);
-
             if (firstInvoiceDate == null) {
                 throw new ApiException("No invoices found for this customer.");
             }
@@ -88,7 +77,6 @@ public class StoreService {
 
         // Iterate over each month until the current month
         while (!lastGenerationDate.isAfter(currentDate.withDayOfMonth(1))) {
-            // Fetch invoices for the current month
             List<Invoice> invoices = invoiceRepository.findInvoicesForCustomerInDateRange(
                     customerId,
                     lastGenerationDate.atStartOfDay(),
@@ -169,7 +157,7 @@ public class StoreService {
                     remainingAmount = 0;
                 }
 
-                // Check if a payment history for this monthly payment and exists
+                // Check if a payment history for this monthly payment exists
                 PaymentHistory existingHistory = paymentHistoryRepository.findByMonthlyPaymentId(payment.getPaymentId());
                 if (existingHistory != null) {
                     // Update the existing payment history
@@ -354,7 +342,7 @@ public class StoreService {
                     topCustomerId = entry.getKey();
                 }
             }
-            String topCustomer = topCustomerId != -1 ? customerRepository.findById(topCustomerId).get().getUsername() : "N/A";
+            String topCustomer = topCustomerId != -1 ? customerRepository.findCustomerByCustomerId(topCustomerId).getUsername() : "N/A";
 
             // Find peak activity period (most invoices created in one hour)
             int peakHour = -1;
@@ -516,7 +504,6 @@ public class StoreService {
         return evaluationResult;
     }
 
-
     //_____________________________________Generate Sales  Forecast____________________________________________
     public SalesForecastDTO forecastStoreSales(Integer storeId, Integer monthsAhead) {
 
@@ -637,8 +624,7 @@ public class StoreService {
             throw new ApiException("Store not found");
         }
 
-        // Fetch invoices and invoice items
-        List<Invoice> invoices = invoiceRepository.findByStoreId(storeId);
+        List<Invoice> invoices = invoiceRepository.findInvoiceByStoreId(storeId);
         List<InvoiceItem> allItems = new ArrayList<>();
         for (Invoice invoice : invoices) {
             List<InvoiceItem> items = invoiceItemRepository.findItemsByInvoiceId(invoice.getInvoiceId());
@@ -734,7 +720,6 @@ public class StoreService {
 
 
 
-        // Fetch all invoices
 
         List<Invoice> invoices = invoiceRepository.findInvoicesByCustomerIdAfterAndCreatedAtBetween(
                 storeId,
@@ -771,7 +756,195 @@ public class StoreService {
         return abnormalInvoices;
     }
 
+    // _______________________________ Add invoice _____________________________
+    public String addInvoiceWithItems(Integer storeId, Integer customerId, Map<String, Object> requestBody) {
+
+        Store store = storeRepository.findStoreByStoreId(storeId);
+        if (store == null) {
+            throw new ApiException("Store not found");
+        }
+
+        Customer customer = customerRepository.findCustomerByCustomerId(customerId);
+        if (customer == null) {
+            throw new ApiException("Customer not found");
+        }
+
+        if (customer.getStoreId() != storeId) {
+            throw new ApiException("Customer is not associated with store");
+        }
+
+
+        Map<String, Object> invoiceMap = (Map<String, Object>) requestBody.get("invoice");
+        if (invoiceMap == null || !invoiceMap.containsKey("totalAmount")) {
+            throw new ApiException("Invalid invoice data");
+        }
+
+        Invoice invoice = new Invoice();
+        invoice.setStoreId(storeId);
+        invoice.setCustomerId(customerId);
+        invoice.setCreatedAt(LocalDateTime.now());
+        invoice.setTotalAmount(Double.parseDouble(invoiceMap.get("totalAmount").toString()));
+        invoiceRepository.save(invoice);
+
+
+        List<Map<String, Object>> items = (List<Map<String, Object>>) requestBody.get("items");
+        if (items == null || items.isEmpty()) {
+            return "invoice saved";  // save invoice without items
+        }
+
+        double totalItemsPrice = 0;
+
+        List<InvoiceItem> pendingItems = new ArrayList<>();
+        for (Map<String, Object> itemMap : items) {
+            if (invoiceItemRepository.findFirstByItemNameAndInvoiceIdOrderByCreatedAtDesc(itemMap.get("itemName").toString(),invoice.getInvoiceId()).getItemName().equals(itemMap.get("itemName").toString())){
+                continue;
+            }
+            InvoiceItem item = new InvoiceItem();
+            item.setInvoiceId(invoice.getInvoiceId());
+            item.setItemName(itemMap.get("itemName").toString());
+            item.setQuantity(Integer.parseInt(itemMap.get("quantity").toString()));
+            item.setPricePerUnit(Double.parseDouble(itemMap.get("pricePerUnit").toString()));
+            item.setSubtotal(item.getPricePerUnit() * item.getQuantity());
+            totalItemsPrice += item.getSubtotal();
+            pendingItems.add(item);
+        }
+
+
+        if ( Math.abs(totalItemsPrice - invoice.getTotalAmount()) > 0.01)  {
+           return "Invoice added without items total items price does not match the invoice total amount";
+        }else{
+            for (InvoiceItem item : pendingItems) {
+
+                invoiceItemRepository.save(item);
+            }
+        }
+
+        return "Invoice and invoice item added successfully";
+    }
+
+    public void addItemToInvoice(Integer invoiceId,Integer storeId,Integer customerId, InvoiceItem invoiceItem) {
+        Store store = storeRepository.findStoreByStoreId(storeId);
+        if (store == null) {
+            throw new ApiException("Store not found");
+        }
+
+        Customer customer = customerRepository.findCustomerByCustomerId(customerId);
+        if (customer == null) {
+            throw new ApiException("Customer not found");
+        }
+
+        if (customer.getStoreId() != storeId) {
+            throw new ApiException("Customer is not associated with store");
+        }
+
+
+        Invoice invoice = invoiceRepository.findInvoiceByInvoiceId(invoiceId);
+
+        if (invoice == null) {
+            throw new RuntimeException("Invoice not found");
+        }
+
+
+        List<InvoiceItem> invoiceItems1 = invoiceItemRepository.findInvoiceItemByInvoiceId(invoice.getCustomerId());
+        MonthlyPayment monthlyPayment = monthlyPaymentRepository.findMonthlyPaymentByCustomerIdAndMonth(invoice.getCustomerId(), invoice.getCreatedAt().withDayOfMonth(1).toLocalDate());
+
+
+        double totalAmountPaid = 0;
+        for (InvoiceItem invoiceItem1 : invoiceItems1) {
+            if (invoiceItem1.getItemName().equals(invoiceItem.getItemName())) {
+                throw new RuntimeException("Item already exists in the invoice");
+            }
+            totalAmountPaid += invoiceItem1.getSubtotal();
+
+        }
+
+        if ((totalAmountPaid+(invoiceItem.getPricePerUnit()*invoiceItem.getQuantity())) >monthlyPayment.getTotalDue()){
+            throw new RuntimeException("Total paid exceeds the due amount");
+        }
+        // Save the new invoice item
+        invoiceItem.setInvoiceId(invoiceId);  // Link the item to the invoice
+        invoiceItem.setSubtotal(invoiceItem.getPricePerUnit() * invoiceItem.getQuantity());
+        invoiceItemRepository.save(invoiceItem);
+
+
+    }
+
+    //_____________________________________________________
+    public void assignCustomerToStore(Integer customerId, Integer storeId) {
+        Store store = storeRepository.findStoreByStoreId(storeId);
+        if (store == null) {
+            throw new ApiException("Store not found");
+        }
+
+
+        Customer customer = customerRepository.findCustomerByCustomerId(customerId);
+        if (customer == null) {
+            throw new ApiException("Customer not found");
+        }
+
+
+        if (customer.getStoreId() != null) {
+            if (customer.getStoreId().equals(storeId)) {
+                throw new ApiException("Customer is already associated with this store.");
+            }
+            throw new ApiException("Customer is already associated with another store.");
+        }
+
+        customer.setStoreId(storeId);
+        customerRepository.save(customer);
+    }
+
+    public void checkoutCustomer(Integer customerId) {
+
+        Customer customer = customerRepository.findCustomerByCustomerId(customerId);
+        if (customer == null) {
+            throw new ApiException("Customer not found");
+        }
+        if (customer.getStoreId() == null) {
+            throw new ApiException("Customer is not associated with any store.");
+        }
+        Store store = storeRepository.findStoreByStoreId(customer.getStoreId());
+
+        if (!store.getStoreId().equals(customer.getStoreId())) {
+            throw new ApiException("Store is not associated with any store.");
+        }
+
+        Integer storeId = customer.getStoreId();
+
+        storeService.createMonthlyPayment(storeId, customerId);
+        List<MonthlyPayment> payments = monthlyPaymentRepository.findMonthlyPaymentByStoreIdAndCustomerId(storeId, customerId);
+
+        double totalOutstandingBalance = 0.0;
+
+        for (MonthlyPayment payment : payments) {
+            if (!"PAID".equals(payment.getPaymentStatus())) {
+                totalOutstandingBalance += payment.getTotalDue() - payment.getTotalPaid();
+            }
+        }
+        if (totalOutstandingBalance > 0) {
+            throw new ApiException("Customer has outstanding payments. Total due: " + totalOutstandingBalance);
+        }
+
+
+        boolean hasUnpaidPayments = false;
+        for (MonthlyPayment payment : payments) {
+            if (!"PAID".equals(payment.getPaymentStatus())) {
+                hasUnpaidPayments = true;
+                break;
+            }
+        }
+        if (hasUnpaidPayments) {
+            throw new ApiException("Customer still has unpaid or partial payments.");
+        }
+
+
+        customer.setStoreId(null);
+        customerRepository.save(customer);
+    }
+
 }
+
+
 
 
 

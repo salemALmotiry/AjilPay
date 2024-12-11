@@ -1,7 +1,5 @@
-package com.example.ajilpay.Model;
+package com.example.ajilpay.DTO;
 
-import com.example.ajilpay.DTO.CustomerOverViewDTO;
-import com.example.ajilpay.DTO.PaymentBehaviorOverViewDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

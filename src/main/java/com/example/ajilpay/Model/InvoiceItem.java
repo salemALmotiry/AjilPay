@@ -20,7 +20,7 @@ public class InvoiceItem {
     @Column(columnDefinition = "INT NOT NULL")
     private Integer invoiceId;
 
-    @NotBlank(message = "Item name cannot be empty")
+    @NotEmpty(message = "Item name cannot be empty")
     @Size(max = 100, message = "Item name must not exceed 100 characters")
     @Column(columnDefinition = "VARCHAR(100) NOT NULL")
     private String itemName;
@@ -29,7 +29,7 @@ public class InvoiceItem {
     @Column(columnDefinition = "INT DEFAULT 1")
     private Integer quantity = 1;
 
-    @NotNull(message = "Price per unit cannot be null")
+    @NotEmpty(message = "Price per unit cannot be null")
     @Positive(message = "Price per unit must be positive")
     @Column(columnDefinition = "DECIMAL(10,2) NOT NULL")
     private Double pricePerUnit;

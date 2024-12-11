@@ -1,7 +1,11 @@
 package com.example.ajilpay.Service;
 
+import com.example.ajilpay.Model.Customer;
 import com.example.ajilpay.Model.MonthlyPayment;
+import com.example.ajilpay.Model.Store;
+import com.example.ajilpay.Repository.CustomerRepository;
 import com.example.ajilpay.Repository.MonthlyPaymentRepository;
+import com.example.ajilpay.Repository.StoreRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,17 +18,35 @@ import java.util.List;
 public class MonthlyPaymentService {
 
     private final MonthlyPaymentRepository monthlyPaymentRepository;
+    private final StoreRepository storeRepository;
+    private final CustomerRepository customerRepository;
 
     public List<MonthlyPayment> getAllMonthlyPayments() {
         return monthlyPaymentRepository.findAll();
     }
 
     public void addMonthlyPayment(MonthlyPayment monthlyPayment) {
+
+        Store store = storeRepository.findStoreByStoreId(monthlyPayment.getStoreId());
+        if (store == null) {
+            throw new RuntimeException("Store not found");
+        }
+        Customer customer = customerRepository.findCustomerByCustomerId(monthlyPayment.getCustomerId());
+        if (customer == null) {
+            throw new RuntimeException("Customer not found");
+        }
+        if (customer.getStoreId() != store.getStoreId()) {
+            throw new RuntimeException("Customer is not associated with store");
+        }
+
         monthlyPaymentRepository.save(monthlyPayment);
     }
 
     public void deleteMonthlyPayment(Integer paymentId) {
-        monthlyPaymentRepository.deleteById(paymentId);
+        if ( monthlyPaymentRepository.findMonthlyPaymentByMonthlyPaymentId(paymentId) ==null )
+            throw new RuntimeException("Monthly payment not found");
+
+        monthlyPaymentRepository.deleteMonthlyPaymentByPaymentId(paymentId);
     }
 
 
@@ -32,12 +54,6 @@ public class MonthlyPaymentService {
     public List<MonthlyPayment> getMonthlyPaymentsByCustomerId(Integer customerId) {
         return monthlyPaymentRepository.findMonthlyPaymentByCustomerId(customerId);
     }
-
-
-    public List<MonthlyPayment> getMonthlyPaymentsByStoreIdCustomerId(Integer storeId,Integer customerId) {
-        return monthlyPaymentRepository.findMonthlyPaymentByStoreIdAndCustomerId(storeId,customerId);
-    }
-
 
     public List<MonthlyPayment> getMonthlyPaymentsByStoreId(Integer storeId) {
         return monthlyPaymentRepository.findMonthlyPaymentByStoreId(storeId);
@@ -47,22 +63,5 @@ public class MonthlyPaymentService {
         return monthlyPaymentRepository.findMonthlyPaymentByPaymentStatus(status);
     }
 
-    public List<MonthlyPayment> getMonthlyPaymentsByCustomerIdAndStatus(Integer customerId,String status) {
-        return monthlyPaymentRepository.findMonthlyPaymentByCustomerIdAndPaymentStatus(customerId,status);
-    }
-    public LocalDate getLastMonthlyPaymentDate(Integer soresId){
-        return monthlyPaymentRepository.getLastMonthlyPaymentDate(soresId);
-    }
 
-    public LocalDate getLastMonthlyPaymentDateByCustomer(Integer storeId, Integer customerId){
-        return monthlyPaymentRepository.getLastMonthlyPaymentDateForCustomer(storeId,customerId);
-    }
-
-    public boolean existMonthlyPayment(Integer customerId, Integer storeId, LocalDate date){
-        return monthlyPaymentRepository.existsMonthlyPaymentByCustomerIdAndStoreIdAndMonth(customerId,storeId,date);
-    }
-
-    public List<MonthlyPayment> getMonthlyPaymentByStatus(Integer customerId, Integer storeId){
-        return monthlyPaymentRepository.findMonthlyPaymentByPendingAndPartial(customerId,storeId);
-    }
 }

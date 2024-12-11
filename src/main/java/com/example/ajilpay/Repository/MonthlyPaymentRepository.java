@@ -1,20 +1,20 @@
 package com.example.ajilpay.Repository;
 
 import com.example.ajilpay.Model.MonthlyPayment;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.time.Month;
 import java.util.List;
 
 @Repository
 public interface MonthlyPaymentRepository extends JpaRepository<MonthlyPayment, Integer> {
 
     List<MonthlyPayment> findMonthlyPaymentByCustomerId(Integer customerId);
+
+    void deleteMonthlyPaymentByPaymentId(Integer paymentId);
 
     @Query("SELECT ph FROM MonthlyPayment ph WHERE ph.paymentId =?1 ")
     MonthlyPayment findMonthlyPaymentByMonthlyPaymentId(Integer monthlyPaymentId);

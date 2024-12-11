@@ -21,36 +21,35 @@ public class InvoiceController {
     @GetMapping("/get-all")
     public ResponseEntity getAllInvoices() {
         List<Invoice> invoices = invoiceService.getAllInvoices();
-        return ResponseEntity.ok(invoices);
+        return ResponseEntity.status(200).body(invoices);
     }
 
     @PostMapping("/add")
-    public ResponseEntity addInvoice(@RequestBody @Valid Invoice invoice, Errors errors) {
-        if (errors.hasErrors()) {
-            return ResponseEntity.badRequest().body(errors.getFieldError().getDefaultMessage());
-        }
+    public ResponseEntity addInvoice(@RequestBody @Valid Invoice invoice) {
+
         invoiceService.addInvoice(invoice);
-        return ResponseEntity.status(201).body(new ApiResponse("Invoice added successfully"));
+        return ResponseEntity.status(200).body(new ApiResponse("Invoice added successfully"));
     }
 
-    @GetMapping("/get-by-store/{storeId}")
-    public ResponseEntity getInvoicesByStoreId(@PathVariable Integer storeId) {
-        List<Invoice> invoices = invoiceService.getInvoicesByStoreId(storeId);
-        return ResponseEntity.ok(invoices);
+    @PutMapping("/{storeId}/{customerId}/{invoiceId}")
+    public ResponseEntity updateInvoice(
+            @PathVariable Integer storeId,
+            @PathVariable Integer customerId,
+            @PathVariable Integer invoiceId,
+            @RequestBody @Valid Invoice invoice
+    ) {
+        invoiceService.updateInvoice(storeId, customerId, invoiceId, invoice);
+        return ResponseEntity.status(200).body(new ApiResponse("Invoice updated successfully"));
     }
 
-    @GetMapping("/get-by-customer/{customerId}")
-    public ResponseEntity getInvoicesByCustomerId(@PathVariable Integer customerId) {
-        List<Invoice> invoices = invoiceService.getInvoicesByCustomerId(customerId);
-        return ResponseEntity.ok(invoices);
-    }
+
 
 
 
     @DeleteMapping("/delete/{invoiceId}")
     public ResponseEntity deleteInvoice(@PathVariable Integer invoiceId) {
         invoiceService.deleteInvoice(invoiceId);
-        return ResponseEntity.ok(new ApiResponse("Invoice deleted successfully"));
+        return ResponseEntity.status (200).body( new ApiResponse("Invoice deleted successfully"));
     }
 
 

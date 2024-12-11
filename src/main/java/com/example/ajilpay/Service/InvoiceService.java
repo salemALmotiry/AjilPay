@@ -1,10 +1,14 @@
 package com.example.ajilpay.Service;
 
 import com.example.ajilpay.ApiResponse.ApiException;
+import com.example.ajilpay.Model.Customer;
 import com.example.ajilpay.Model.Invoice;
 import com.example.ajilpay.Model.InvoiceItem;
+import com.example.ajilpay.Model.Store;
+import com.example.ajilpay.Repository.CustomerRepository;
 import com.example.ajilpay.Repository.InvoiceItemRepository;
 import com.example.ajilpay.Repository.InvoiceRepository;
+import com.example.ajilpay.Repository.StoreRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,13 +25,15 @@ public class InvoiceService {
     private final InvoiceRepository invoiceRepository;
     private final InvoiceItemRepository invoiceItemRepository;
     private final InvoiceItemService invoiceItemService;
+    private final StoreRepository storeRepository;
+    private final CustomerRepository customerRepository;
 
     public List<Invoice> getAllInvoices() {
         return invoiceRepository.findAll();
     }
 
     public List<Invoice> getInvoicesByStoreId(Integer storeId) {
-        return invoiceRepository.findByStoreId(storeId);
+        return invoiceRepository.findInvoiceByStoreId(storeId);
     }
 
     public List<Invoice> getInvoicesByCustomerId(Integer customerId) {
@@ -39,6 +45,30 @@ public class InvoiceService {
     }
 
 
+    public void updateInvoice(Integer storeId,Integer customerId,Integer invoiceId,Invoice invoice) {
+        Store store = storeRepository.findStoreByStoreId(storeId);
+        if (store == null) {
+            throw new ApiException("Store not found");
+        }
+
+        Customer customer = customerRepository.findCustomerByCustomerId(customerId);
+        if (customer == null) {
+            throw new ApiException("Customer not found");
+        }
+
+        if (customer.getStoreId() != storeId) {
+            throw new ApiException("Customer is not associated with store");
+        }
+
+        Invoice oldInvoice = invoiceRepository.findInvoiceByInvoiceId(invoiceId);
+        if (oldInvoice == null) {
+            throw new ApiException("Invoice not found");
+        }
+        oldInvoice.setTotalAmount(invoice.getTotalAmount());
+        oldInvoice.setInvoiceId(invoiceId);
+        oldInvoice.setCustomerId(customerId);
+        invoiceRepository.save(oldInvoice);
+    }
     public void deleteInvoice(Integer invoiceId) {
         invoiceRepository.deleteById(invoiceId);
     }
@@ -61,32 +91,10 @@ public class InvoiceService {
         return invoiceWithItems;
     }
 
-    public LocalDateTime getFistInvoice(Integer customerId) {
-        return invoiceRepository.findFirstInvoiceByCustomerId(customerId);
-    }
+
 
     private List<InvoiceItem> fetchInvoiceItems(Integer invoiceId) {
         return invoiceItemService.getInvoiceItemsByInvoiceId(invoiceId);
-    }
-
-    public  List<Invoice> getInvoicesForCustomerInDateRange(Integer customerId, LocalDateTime startDate, LocalDateTime endDate){
-
-        return invoiceRepository.findInvoicesForCustomerInDateRange(customerId,startDate,endDate);
-    }
-
-    public double getAverageInvoiceAmountForCustomer(Integer customerId) {
-        List<Invoice> invoices = invoiceRepository.findInvoiceByCustomerId(customerId);
-
-        if (invoices.isEmpty()) {
-            return 0.0;
-        }
-
-        double totalAmount = 0.0;
-        for (Invoice invoice : invoices) {
-            totalAmount += invoice.getTotalAmount();
-        }
-
-        return totalAmount / invoices.size();
     }
 
 
